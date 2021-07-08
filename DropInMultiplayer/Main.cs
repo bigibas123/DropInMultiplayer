@@ -120,24 +120,30 @@ namespace DropInMultiplayer
 
         private void CheckChatForJoinRequest(On.RoR2.Console.orig_RunCmd orig, RoR2.Console self, RoR2.Console.CmdSender sender, string concommandName, List<string> userArgs)
         {
-            orig(self, sender, concommandName, userArgs);
-
-            if (concommandName.Equals("say", StringComparison.InvariantCultureIgnoreCase))
+            try
             {
-                var userInput = userArgs.FirstOrDefault().Split(' ');
-                var chatCommand = userInput.FirstOrDefault();
-                if (chatCommand.IsNullOrWhiteSpace())
+                if (concommandName.Equals("say", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return;
-                }
+                    var userInput = userArgs.FirstOrDefault().Split(' ');
+                    var chatCommand = userInput.FirstOrDefault();
 
-                if (chatCommand.Equals("join_as", StringComparison.InvariantCultureIgnoreCase) || chatCommand.Equals("join", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    string bodyString = userInput.ElementAtOrDefault(1) ?? "";
-                    string userString = userInput.ElementAtOrDefault(2) ?? "";
+                    if ((!chatCommand.IsNullOrWhiteSpace()) && chatCommand.Equals("join_as", StringComparison.InvariantCultureIgnoreCase) || chatCommand.Equals("join", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        string bodyString = userInput.ElementAtOrDefault(1) ?? "";
+                        string userString = userInput.ElementAtOrDefault(2) ?? "";
 
-                    JoinAs(sender.networkUser, bodyString, userString);
+                        JoinAs(sender.networkUser, bodyString, userString);
+                        return;
+                    }
                 }
+            }
+            catch (NullReferenceException e)
+            { 
+                Logger.LogError("[Drop-In Multiplayer] NRE on CheckChatForJoinRequest");
+                Logger.LogError(e);
+            }
+            finally {
+                orig(self, sender, concommandName, userArgs);
             }
         }
 
